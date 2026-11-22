@@ -1,0 +1,10 @@
+{
+  "name": "solana-smartmoney-paywall",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "@vercel/node": "^3.2.25",
+    "typescript": "^5.6.3"
+  }
+}

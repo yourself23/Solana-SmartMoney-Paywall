@@ -1,0 +1,3 @@
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { PASS_CREDITS, PASS_LAMPORTS, TREASURY, generateApiKey, redis, resolveSig, send402, verifyPayment } from "../../lib/paywall";
+export default async function h(q: VercelRequest, s: VercelResponse) { const sig = await resolveSig(q); if (!sig) return send402(s, PASS_LAMPORTS, "/api/credits/mint"); const c = await verifyPayment(sig, PASS_LAMPORTS, "/api/credits/mint"); if (!c.ok) return send402(s, PASS_LAMPORTS, "/api/credits/mint", c.error); const apiKey = generateApiKey(); await redis.set("sm:key:" + apiKey, PASS_CREDITS, { ex: 2592000 }); s.status(200).json({ apiKey, credits: PASS_CREDITS, treasury: TREASURY }); }

@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/.well-known/x402.json",
+      "destination": "/api/well-known-x402"
+    },
+    {
+      "source": "/.well-known/glama.json",
+      "destination": "/api/well-known-glama"
+    },
+    {
+      "source": "/llms.txt",
+      "destination": "/api/llms"
+    }
+  ]
+}

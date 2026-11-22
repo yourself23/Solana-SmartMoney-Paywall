@@ -1,0 +1,2 @@
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+export default function h(_q: VercelRequest, s: VercelResponse) { s.setHeader("Content-Type","text/plain"); s.status(200).send("# Solana-SmartMoney-Paywall\nFree: GET /api/alpha/trending\nPaid (0.005 SOL / 0.50 USDC): GET /api/alpha/wallet, /api/alpha/early-buyers, /api/alpha/overlap, POST /api/mcp\nPass (0.05 SOL / 5 USDC = 30 calls): POST /api/credits/mint\nTreasury: 2Z6xwB633pMFj3iMj1pUz2ikGrVGGTun7AY3qZDNZip2\n"); }
