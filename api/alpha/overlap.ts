@@ -1,4 +1,15 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { MICRO_LAMPORTS, requireGate } from "../../lib/paywall";
-import { findWalletOverlap } from "../../lib/smart";
-export default async function h(q: VercelRequest, s: VercelResponse) { if (!(await requireGate(q, s, MICRO_LAMPORTS, "/api/alpha/overlap"))) return; const ws = String(q.query.wallets || "").split(",").map(x => x.trim()).filter(Boolean); if (ws.length < 2) return s.status(400).json({ error: "comma-separated wallets required" }); try { s.status(200).json(await findWalletOverlap(ws)); } catch (e) { s.status(500).json({ error: String(e) }); } }
+import { hasPayment, MICRO_LAMPORTS, requireGate, send402 } from "../../lib/paywall";
+import { findWalletOverlap, InputError, requireWallets } from "../../lib/smart";
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const raw = typeof req.query.wallets === "string" ? req.query.wallets.trim() : "";
+  if (!raw && !hasPayment(req)) return send402(res, MICRO_LAMPORTS, "/api/alpha/overlap");
+  let wallets: string[];
+  try { wallets = requireWallets(raw.split(",").map((wallet) => wallet.trim())); }
+  catch (error) { return res.status(400).json({ error: error instanceof InputError ? error.message : "Invalid wallets" }); }
+  if (!hasPayment(req)) return send402(res, MICRO_LAMPORTS, "/api/alpha/overlap");
+  if (!(await requireGate(req, res, MICRO_LAMPORTS, "/api/alpha/overlap"))) return;
+  try { return res.status(200).json(await findWalletOverlap(wallets)); }
+  catch (error) { console.error("Wallet overlap failed:", error); return res.status(503).json({ error: "Wallet overlap unavailable" }); }
+}

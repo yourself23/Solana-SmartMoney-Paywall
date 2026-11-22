@@ -2,6 +2,9 @@
   "name": "solana-smartmoney-paywall",
   "version": "1.0.0",
   "private": true,
+  "scripts": {
+    "test": "tsc --outDir .test-build && node --test test/*.test.cjs"
+  },
   "devDependencies": {
     "@types/node": "^22.9.0",
     "@vercel/node": "^3.2.25",

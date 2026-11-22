@@ -1,4 +1,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { MICRO_LAMPORTS, requireGate } from "../../lib/paywall";
-import { profileWallet } from "../../lib/smart";
-export default async function h(q: VercelRequest, s: VercelResponse) { if (!(await requireGate(q, s, MICRO_LAMPORTS, "/api/alpha/wallet"))) return; const w = String(q.query.wallet || "").trim(); if (!w) return s.status(400).json({ error: "wallet required" }); try { s.status(200).json(await profileWallet(w)); } catch (e) { s.status(500).json({ error: String(e) }); } }
+import { hasPayment, MICRO_LAMPORTS, requireGate, send402 } from "../../lib/paywall";
+import { profileWallet, validAddress } from "../../lib/smart";
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const wallet = typeof req.query.wallet === "string" ? req.query.wallet.trim() : "";
+  if (wallet && !validAddress(wallet)) return res.status(400).json({ error: "wallet must be a valid Solana public key" });
+  if (!hasPayment(req)) return send402(res, MICRO_LAMPORTS, "/api/alpha/wallet");
+  if (!validAddress(wallet)) return res.status(400).json({ error: "wallet must be a valid Solana public key" });
+  if (!(await requireGate(req, res, MICRO_LAMPORTS, "/api/alpha/wallet"))) return;
+  try { return res.status(200).json(await profileWallet(wallet)); }
+  catch (error) { console.error("Wallet profile failed:", error); return res.status(503).json({ error: "Wallet profile unavailable" }); }
+}

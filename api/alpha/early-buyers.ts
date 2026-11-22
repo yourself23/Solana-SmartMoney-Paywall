@@ -1,4 +1,13 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { MICRO_LAMPORTS, requireGate } from "../../lib/paywall";
-import { findEarlyBuyers } from "../../lib/smart";
-export default async function h(q: VercelRequest, s: VercelResponse) { if (!(await requireGate(q, s, MICRO_LAMPORTS, "/api/alpha/early-buyers"))) return; const m = String(q.query.mint || "").trim(); if (!m) return s.status(400).json({ error: "mint required" }); try { s.status(200).json(await findEarlyBuyers(m)); } catch (e) { s.status(500).json({ error: String(e) }); } }
+import { hasPayment, MICRO_LAMPORTS, requireGate, send402 } from "../../lib/paywall";
+import { findEarlyBuyers, validAddress } from "../../lib/smart";
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const mint = typeof req.query.mint === "string" ? req.query.mint.trim() : "";
+  if (mint && !validAddress(mint)) return res.status(400).json({ error: "mint must be a valid Solana public key" });
+  if (!hasPayment(req)) return send402(res, MICRO_LAMPORTS, "/api/alpha/early-buyers");
+  if (!validAddress(mint)) return res.status(400).json({ error: "mint must be a valid Solana public key" });
+  if (!(await requireGate(req, res, MICRO_LAMPORTS, "/api/alpha/early-buyers"))) return;
+  try { return res.status(200).json(await findEarlyBuyers(mint)); }
+  catch (error) { console.error("Early buyer lookup failed:", error); return res.status(503).json({ error: "Early buyer lookup unavailable" }); }
+}
