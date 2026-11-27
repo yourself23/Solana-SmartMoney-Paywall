@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "node:crypto";
 
-export const TREASURY = process.env.TREASURY_WALLET?.trim() || "2Z6xwB633pMFj3iMj1pUz2ikGrVGGTun7AY3qZDNZip2";
+export const TREASURY = process.env.TREASURY_WALLET?.trim() || "5Y7aEmYpCyMJanR9qjCUYf59voi6EsJrkjsJB2cNMsW";
 export const RPC_URL = process.env.SOLANA_RPC_URL?.trim() || "https://api.mainnet-beta.solana.com";
 export const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 export const MICRO_LAMPORTS = 5_000_000;
