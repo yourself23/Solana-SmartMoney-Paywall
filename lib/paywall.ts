@@ -1,7 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "node:crypto";
 
-export const TREASURY = process.env.TREASURY_WALLET?.trim() || "5Y7aEmYpCyMJanR9qjCUYf59voi6EsJrkjsJB2cNMsW";
+export const USDC_TREASURY = process.env.USDC_TREASURY_WALLET?.trim() || "5Y7aEmYpCyMJanR9qjCUYf59voi6EsJrkjsJB2cNMsW";
+export const SOL_TREASURY = process.env.SOL_TREASURY_WALLET?.trim() || "2Z6xwB633pMFj3iMj1pUz2ikGrVGGTun7AY3qZDNZip2";
+export const TREASURY = USDC_TREASURY;
 export const RPC_URL = process.env.SOLANA_RPC_URL?.trim() || "https://api.mainnet-beta.solana.com";
 export const USDC_MINT = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 export const MICRO_LAMPORTS = 5_000_000;
@@ -35,7 +37,7 @@ export const redis = { get: async <T = string>(key: string) => await upstash(["G
 export function send402(res: VercelResponse, minL: number, route: string, msg = "Payment Required (x402 Native SOL or USDC)", signature?: string) {
   const usdc = minL >= PASS_LAMPORTS ? "5000000" : "500000";
   const accepts = [
-    { scheme: "exact", network: NETWORK, asset: "So11111111111111111111111111111111111111112", amount: String(minL), payTo: TREASURY, maxTimeoutSeconds: 60, extra: {} },
+    { scheme: "exact", network: NETWORK, asset: "So11111111111111111111111111111111111111112", amount: String(minL), payTo: SOL_TREASURY, maxTimeoutSeconds: 60, extra: {} },
     { scheme: "exact", network: NETWORK, asset: USDC_MINT, amount: usdc, payTo: TREASURY, maxTimeoutSeconds: 60, extra: {} },
   ];
   const challenge = { x402Version: 2, resource: { url: route, mimeType: "application/json" }, accepts };
@@ -73,7 +75,7 @@ export async function verifyPayment(signature: string, minL: number, route: stri
   const tx = await solRpc("getTransaction", [signature, { encoding: "jsonParsed", maxSupportedTransactionVersion: 0, commitment: "confirmed" }]);
   if (!tx || !tx.meta || tx.meta.err !== null) return { ok: false, error: "Transaction not confirmed or failed", pending: !tx };
   const keys: string[] = (tx.transaction?.message?.accountKeys || []).map((k: any) => typeof k === "string" ? k : k.pubkey);
-  const idx = keys.indexOf(TREASURY);
+  const idx = keys.indexOf(SOL_TREASURY);
   const pre = tx.meta.preBalances?.[idx], post = tx.meta.postBalances?.[idx];
   if (idx >= 0 && (!Number.isSafeInteger(pre) || !Number.isSafeInteger(post))) throw new Error("Invalid treasury SOL balances");
   const solIn = idx < 0 ? 0n : BigInt(post) - BigInt(pre);
